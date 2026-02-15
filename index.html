@@ -918,8 +918,60 @@
             const handleExportReceiptPDF = () => {
                 const element = document.getElementById('receipt-paper');
                 if (!element) { showToast("Erro: Elemento não encontrado", "error"); return; }
-                showToast("Iniciando exportação...", "info");
-                html2pdf().set({ margin: 0, filename: `recibo_${currentReceipt?.clientName || 'venda'}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(element).save();
+                
+                showToast("Gerando PDF...", "info");
+
+                // Clona o elemento para limpar estilos
+                const clone = element.cloneNode(true);
+                
+                // Estilos forçados para o PDF
+                clone.style.boxShadow = 'none';
+                clone.style.borderRadius = '0';
+                clone.style.margin = '0';
+                clone.style.padding = '0';
+                clone.style.maxWidth = '100%';
+                clone.style.width = '80mm'; // Largura fixa 80mm
+                clone.style.backgroundColor = '#ffffff';
+                clone.style.color = '#000000';
+                clone.style.height = 'auto'; // Altura automática
+                
+                // Container temporário para cálculo de altura
+                const container = document.createElement('div');
+                container.style.position = 'fixed';
+                container.style.top = '-9999px';
+                container.style.left = '0';
+                container.style.zIndex = '-1';
+                container.appendChild(clone);
+                document.body.appendChild(container);
+
+                // Calcula altura dinâmica em mm (aprox 1px = 0.264583mm)
+                // Adicionamos um pequeno buffer para garantir que nada corte
+                const heightPx = clone.offsetHeight || clone.scrollHeight;
+                const heightMm = Math.ceil(heightPx * 0.264583) + 2; 
+
+                const opt = {
+                    margin:       0,
+                    filename:     `recibo_${currentReceipt?.clientName || 'venda'}.pdf`,
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { 
+                        scale: 2, 
+                        useCORS: true, 
+                        logging: false,
+                        scrollY: 0,
+                        windowWidth: document.documentElement.offsetWidth
+                    },
+                    // Define o formato com a altura calculada exata do conteúdo
+                    jsPDF:        { unit: 'mm', format: [80, heightMm], orientation: 'portrait' } 
+                };
+
+                html2pdf().set(opt).from(clone).save().then(() => {
+                    document.body.removeChild(container);
+                    showToast("PDF Exportado com Sucesso!");
+                }).catch(err => {
+                    console.error("Erro PDF:", err);
+                    if(document.body.contains(container)) document.body.removeChild(container);
+                    showToast("Erro ao gerar PDF", "error");
+                });
             };
 
             const startEdit = (sale) => { 
@@ -1062,40 +1114,40 @@
                                         })()}
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                                        {(() => {
-                                            const mySales = sales.filter(s => s.employeeName === settings.employeeName);
-                                            const today = new Date().toISOString().split('T')[0];
-                                            const currentMonth = new Date().getMonth();
-                                            const currentYear = new Date().getFullYear();
-                                            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                                            {(() => {
+                                                const mySales = sales.filter(s => s.employeeName === settings.employeeName);
+                                                const today = new Date().toISOString().split('T')[0];
+                                                const currentMonth = new Date().getMonth();
+                                                const currentYear = new Date().getFullYear();
+                                                const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-                                            const salesToday = mySales.filter(s => s.date === today).reduce((acc, s) => acc + (s.amountPaid || s.amount), 0);
-                                            const salesMonth = mySales.filter(s => { const d = new Date(s.date + 'T00:00:00'); return d.getMonth() === currentMonth && d.getFullYear() === currentYear; });
-                                            const totalMonth = salesMonth.reduce((acc, s) => acc + (s.amountPaid || s.amount), 0);
-                                            
-                                            // Novos KPIS Calculados
-                                            const countSalesMonth = salesMonth.length;
-                                            const totalDiscountMonth = salesMonth.reduce((acc, s) => acc + (s.discount || 0), 0);
-                                            const myClients = clients.filter(c => {
-                                                if (!c.createdAt || c.createdBy !== settings.employeeName) return false;
-                                                const d = new Date(c.createdAt);
-                                                return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-                                            });
-                                            const newClientsCount = myClients.length;
-                                            const avgTicket = countSalesMonth > 0 ? totalMonth / countSalesMonth : 0;
-
-                                            return (
-                                                <>
-                                                <div className="p-6 rounded-[1.5rem] border border-blue-100 bg-blue-50/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"><div className="flex justify-between items-start mb-2"><p className="text-xs font-bold text-blue-600 uppercase tracking-wider">Vendas Hoje</p><div className="p-1.5 rounded-lg bg-white/50 text-blue-600"><Icons.DollarSign className="w-4 h-4"/></div></div><p className="text-3xl font-black text-slate-800 tracking-tight">{formatCurrency(salesToday)}</p></div>
-                                                <div className="p-6 rounded-[1.5rem] border border-emerald-100 bg-emerald-50/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"><div className="flex justify-between items-start mb-2"><p className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Total Mês</p><div className="p-1.5 rounded-lg bg-white/50 text-emerald-600"><Icons.BarChart className="w-4 h-4"/></div></div><p className="text-3xl font-black text-slate-800 tracking-tight">{formatCurrency(totalMonth)}</p></div>
-                                                <div className="p-6 rounded-[1.5rem] border border-violet-100 bg-violet-50/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"><div className="flex justify-between items-start mb-2"><p className="text-xs font-bold text-violet-600 uppercase tracking-wider">Ticket Médio</p><div className="p-1.5 rounded-lg bg-white/50 text-violet-600"><Icons.Tag className="w-4 h-4"/></div></div><p className="text-3xl font-black text-slate-800 tracking-tight">{formatCurrency(avgTicket)}</p></div>
+                                                const salesToday = mySales.filter(s => s.date === today).reduce((acc, s) => acc + (s.amountPaid || s.amount), 0);
+                                                const salesMonth = mySales.filter(s => { const d = new Date(s.date + 'T00:00:00'); return d.getMonth() === currentMonth && d.getFullYear() === currentYear; });
+                                                const totalMonth = salesMonth.reduce((acc, s) => acc + (s.amountPaid || s.amount), 0);
                                                 
-                                                <div className="p-6 rounded-[1.5rem] border border-orange-100 bg-orange-50/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"><div className="flex justify-between items-start mb-2"><p className="text-xs font-bold text-orange-600 uppercase tracking-wider">Qtd Vendas</p><div className="p-1.5 rounded-lg bg-white/50 text-orange-600"><Icons.Receipt className="w-4 h-4"/></div></div><p className="text-3xl font-black text-slate-800 tracking-tight">{countSalesMonth}</p></div>
-                                                <div className="p-6 rounded-[1.5rem] border border-indigo-100 bg-indigo-50/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"><div className="flex justify-between items-start mb-2"><p className="text-xs font-bold text-indigo-600 uppercase tracking-wider">Novos Cadastros</p><div className="p-1.5 rounded-lg bg-white/50 text-indigo-600"><Icons.UserPlus className="w-4 h-4"/></div></div><p className="text-3xl font-black text-slate-800 tracking-tight">{newClientsCount}</p></div>
-                                                <div className="p-6 rounded-[1.5rem] border border-rose-100 bg-rose-50/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"><div className="flex justify-between items-start mb-2"><p className="text-xs font-bold text-rose-600 uppercase tracking-wider">Total Descontos</p><div className="p-1.5 rounded-lg bg-white/50 text-rose-600"><Icons.AlertTriangle className="w-4 h-4"/></div></div><p className="text-3xl font-black text-slate-800 tracking-tight">-{formatCurrency(totalDiscountMonth)}</p></div>
-                                                </>
-                                            );
-                                        })()}
+                                                // Novos KPIS Calculados
+                                                const countSalesMonth = salesMonth.length;
+                                                const totalDiscountMonth = salesMonth.reduce((acc, s) => acc + (s.discount || 0), 0);
+                                                const myClients = clients.filter(c => {
+                                                    if (!c.createdAt || c.createdBy !== settings.employeeName) return false;
+                                                    const d = new Date(c.createdAt);
+                                                    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+                                                });
+                                                const newClientsCount = myClients.length;
+                                                const avgTicket = countSalesMonth > 0 ? totalMonth / countSalesMonth : 0;
+
+                                                return (
+                                                    <>
+                                                    <div className="p-6 rounded-[1.5rem] border border-blue-100 bg-blue-50/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"><div className="flex justify-between items-start mb-2"><p className="text-xs font-bold text-blue-600 uppercase tracking-wider">Vendas Hoje</p><div className="p-1.5 rounded-lg bg-white/50 text-blue-600"><Icons.DollarSign className="w-4 h-4"/></div></div><p className="text-3xl font-black text-slate-800 tracking-tight">{formatCurrency(salesToday)}</p></div>
+                                                    <div className="p-6 rounded-[1.5rem] border border-emerald-100 bg-emerald-50/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"><div className="flex justify-between items-start mb-2"><p className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Total Mês</p><div className="p-1.5 rounded-lg bg-white/50 text-emerald-600"><Icons.BarChart className="w-4 h-4"/></div></div><p className="text-3xl font-black text-slate-800 tracking-tight">{formatCurrency(totalMonth)}</p></div>
+                                                    <div className="p-6 rounded-[1.5rem] border border-violet-100 bg-violet-50/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"><div className="flex justify-between items-start mb-2"><p className="text-xs font-bold text-violet-600 uppercase tracking-wider">Ticket Médio</p><div className="p-1.5 rounded-lg bg-white/50 text-violet-600"><Icons.Tag className="w-4 h-4"/></div></div><p className="text-3xl font-black text-slate-800 tracking-tight">{formatCurrency(avgTicket)}</p></div>
+                                                    
+                                                    <div className="p-6 rounded-[1.5rem] border border-orange-100 bg-orange-50/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"><div className="flex justify-between items-start mb-2"><p className="text-xs font-bold text-orange-600 uppercase tracking-wider">Qtd Vendas</p><div className="p-1.5 rounded-lg bg-white/50 text-orange-600"><Icons.Receipt className="w-4 h-4"/></div></div><p className="text-3xl font-black text-slate-800 tracking-tight">{countSalesMonth}</p></div>
+                                                    <div className="p-6 rounded-[1.5rem] border border-indigo-100 bg-indigo-50/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"><div className="flex justify-between items-start mb-2"><p className="text-xs font-bold text-indigo-600 uppercase tracking-wider">Novos Cadastros</p><div className="p-1.5 rounded-lg bg-white/50 text-indigo-600"><Icons.UserPlus className="w-4 h-4"/></div></div><p className="text-3xl font-black text-slate-800 tracking-tight">{newClientsCount}</p></div>
+                                                    <div className="p-6 rounded-[1.5rem] border border-rose-100 bg-rose-50/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"><div className="flex justify-between items-start mb-2"><p className="text-xs font-bold text-rose-600 uppercase tracking-wider">Total Descontos</p><div className="p-1.5 rounded-lg bg-white/50 text-rose-600"><Icons.AlertTriangle className="w-4 h-4"/></div></div><p className="text-3xl font-black text-slate-800 tracking-tight">-{formatCurrency(totalDiscountMonth)}</p></div>
+                                                    </>
+                                                );
+                                            })()}
                                     </div>
                                     
                                     {/* GRÁFICO MENSAL - NOVO */}
@@ -1443,15 +1495,15 @@
                                 <div className="p-8 border-b border-slate-100 bg-white/80 backdrop-blur-md flex justify-between items-center sticky top-0 z-10"><div><h3 className="font-bold text-2xl text-slate-800 flex items-center gap-3 font-display"><div className="p-3 bg-slate-100 rounded-2xl shadow-sm text-slate-600"><Icons.History className="w-6 h-6"/></div> Histórico de Compras</h3><p className="text-base text-slate-500 mt-2 ml-2 font-medium">{(selectedClientHistory.client.name || 'Cliente')} • <span className="font-mono text-sm">{selectedClientHistory.client.cpf}</span></p></div><button onClick={() => setClientHistoryModalOpen(false)} className="p-4 hover:bg-slate-100 rounded-2xl transition-colors"><Icons.X className="w-6 h-6 text-slate-400"/></button></div>
                                 <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50 custom-scrollbar">
                                     {selectedClientHistory.history.length === 0 ? (<div className="text-center py-20"><div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300 shadow-inner"><Icons.History className="w-12 h-12"/></div><p className="text-slate-400 font-bold text-lg">Nenhuma compra registrada.</p></div>) : (
-                                        <div className="space-y-6">
-                                            {selectedClientHistory.history.map(sale => (
-                                                <div key={sale.id} className="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-8 flex flex-col md:flex-row gap-8 hover:shadow-xl transition-all hover:-translate-y-1 duration-300 group">
-                                                    <div className="md:w-36 flex flex-col justify-center items-center bg-slate-50 rounded-3xl p-6 border border-slate-100 group-hover:bg-odoo-50 group-hover:border-odoo-100 transition-colors"><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 group-hover:text-odoo-400">Data</span><span className="text-3xl font-black text-slate-800 group-hover:text-odoo-700">{formatDateBR(sale.date).split('/')[0]}</span><span className="text-sm font-bold text-slate-500 uppercase">{new Date(sale.date).toLocaleString('default', { month: 'short' })}</span><span className="text-xs font-bold text-slate-300 mt-1">{formatDateBR(sale.date).split('/')[2]}</span></div>
-                                                    <div className="flex-1"><span className="text-xs font-bold text-slate-400 uppercase mb-4 block tracking-widest pl-1">Produtos</span><div className="space-y-3">{(sale.items || []).map((item, idx) => (<div key={idx} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100/50 hover:bg-white hover:shadow-sm transition-all"><div><span className="font-bold text-sm text-odoo-600 bg-odoo-50 px-2 py-1 rounded-lg mr-2 border border-odoo-100">{item.quantity}x</span> <span className="text-base font-bold text-slate-700">{item.description}</span> <div className="text-xs text-slate-400 ml-1 mt-1 font-medium pl-9 uppercase tracking-wide">{item.ram_storage} • {item.color}</div></div><div className="text-right font-bold text-base text-slate-700 font-mono">{formatCurrency((item.unitPrice * item.quantity) - item.discount)}</div></div>))}</div></div>
-                                                    <div className="md:w-64 flex flex-col justify-between border-l border-slate-100 pl-8 border-dashed"><div><span className="text-xs font-bold text-slate-400 uppercase mb-3 block tracking-widest">Pagamento</span><div className="space-y-2">{(sale.payments || []).map((p, idx) => (<div key={idx} className="flex justify-between text-xs font-bold text-slate-600 uppercase"><span>{p.method}</span><span className="font-mono">{formatCurrency(p.amount)}</span></div>))}</div></div><div className="mt-6 pt-6 border-t border-slate-100 flex justify-between items-center"><span className="text-xs font-black text-slate-400 uppercase tracking-wider">Total</span><span className="text-2xl font-black text-slate-800">{formatCurrency(sale.amountPaid || sale.amount)}</span></div><button onClick={() => openReceipt(sale)} className="w-full mt-4 py-3 bg-slate-800 text-white text-xs font-bold rounded-xl hover:bg-slate-900 transition-all shadow-lg shadow-slate-500/20 active:scale-95 uppercase tracking-wide">Ver Recibo</button></div>
-                                                </div>
-                                            ))}
-                                        </div>
+                                            <div className="space-y-6">
+                                                {selectedClientHistory.history.map(sale => (
+                                                    <div key={sale.id} className="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-8 flex flex-col md:flex-row gap-8 hover:shadow-xl transition-all hover:-translate-y-1 duration-300 group">
+                                                        <div className="md:w-36 flex flex-col justify-center items-center bg-slate-50 rounded-3xl p-6 border border-slate-100 group-hover:bg-odoo-50 group-hover:border-odoo-100 transition-colors"><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 group-hover:text-odoo-400">Data</span><span className="text-3xl font-black text-slate-800 group-hover:text-odoo-700">{formatDateBR(sale.date).split('/')[0]}</span><span className="text-sm font-bold text-slate-500 uppercase">{new Date(sale.date).toLocaleString('default', { month: 'short' })}</span><span className="text-xs font-bold text-slate-300 mt-1">{formatDateBR(sale.date).split('/')[2]}</span></div>
+                                                        <div className="flex-1"><span className="text-xs font-bold text-slate-400 uppercase mb-4 block tracking-widest pl-1">Produtos</span><div className="space-y-3">{(sale.items || []).map((item, idx) => (<div key={idx} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100/50 hover:bg-white hover:shadow-sm transition-all"><div><span className="font-bold text-sm text-odoo-600 bg-odoo-50 px-2 py-1 rounded-lg mr-2 border border-odoo-100">{item.quantity}x</span> <span className="text-base font-bold text-slate-700">{item.description}</span> <div className="text-xs text-slate-400 ml-1 mt-1 font-medium pl-9 uppercase tracking-wide">{item.ram_storage} • {item.color}</div></div><div className="text-right font-bold text-base text-slate-700 font-mono">{formatCurrency((item.unitPrice * item.quantity) - item.discount)}</div></div>))}</div></div>
+                                                        <div className="md:w-64 flex flex-col justify-between border-l border-slate-100 pl-8 border-dashed"><div><span className="text-xs font-bold text-slate-400 uppercase mb-3 block tracking-widest">Pagamento</span><div className="space-y-2">{(sale.payments || []).map((p, idx) => (<div key={idx} className="flex justify-between text-xs font-bold text-slate-600 uppercase"><span>{p.method}</span><span className="font-mono">{formatCurrency(p.amount)}</span></div>))}</div></div><div className="mt-6 pt-6 border-t border-slate-100 flex justify-between items-center"><span className="text-xs font-black text-slate-400 uppercase tracking-wider">Total</span><span className="text-2xl font-black text-slate-800">{formatCurrency(sale.amountPaid || sale.amount)}</span></div><button onClick={() => openReceipt(sale)} className="w-full mt-4 py-3 bg-slate-800 text-white text-xs font-bold rounded-xl hover:bg-slate-900 transition-all shadow-lg shadow-slate-500/20 active:scale-95 uppercase tracking-wide">Ver Recibo</button></div>
+                                                    </div>
+                                                ))}
+                                            </div>
                                     )}
                                 </div>
                             </div>
