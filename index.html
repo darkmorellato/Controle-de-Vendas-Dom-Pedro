@@ -843,14 +843,12 @@
                 showToast("Backup salvo na pasta padrão!"); if(logoutModalOpen) setLogoutModalOpen(false);
             };
 
-            // Função Simulada de Salvar na Nuvem (Já que é Realtime)
             const handleSaveToCloud = async () => {
                 if (!auth.currentUser) {
                     showToast("Erro: Não conectado à nuvem.", "error");
                     return;
                 }
                 showToast("Verificando sincronização com a nuvem...", "info");
-                // Simula um log para garantir escrita
                 try {
                     await db.collection('system_logs').add({
                         action: 'manual_cloud_save',
@@ -931,12 +929,16 @@
                 setIsDateLocked(true); window.scrollTo({ top: 0, behavior: 'smooth' }); 
             };
 
+            // --- CORREÇÃO AQUI: BLINDAGEM CONTRA NOME DE CLIENTE VAZIO ---
             const handleViewHistory = (client) => {
+                // Se client.name for null/undefined, usa string vazia para evitar crash
                 const cleanTargetCpf = client.cpf ? client.cpf.replace(/\D/g, '') : null;
-                const targetName = client.name.trim().toLowerCase();
+                const targetName = (client.name || '').trim().toLowerCase(); 
+
                 const clientSales = sales.filter(s => {
                     const saleCpf = s.clientCpf ? s.clientCpf.replace(/\D/g, '') : null;
-                    return (cleanTargetCpf && saleCpf && cleanTargetCpf === saleCpf) || (s.clientName.trim().toLowerCase() === targetName);
+                    // Protege s.clientName também
+                    return (cleanTargetCpf && saleCpf && cleanTargetCpf === saleCpf) || ((s.clientName || '').trim().toLowerCase() === targetName);
                 });
                 setSelectedClientHistory({ client, history: clientSales }); setClientHistoryModalOpen(true);
             };
@@ -946,15 +948,18 @@
                 if (filterDate) f = f.filter(s => s.date === filterDate);
                 if (searchTerm) {
                     const l = searchTerm.toLowerCase();
-                    f = f.filter(s => s.clientName.toLowerCase().includes(l) || s.items.some(i => i.description.toLowerCase().includes(l)));
+                    // Protege s.clientName
+                    f = f.filter(s => (s.clientName || '').toLowerCase().includes(l) || s.items.some(i => i.description.toLowerCase().includes(l)));
                 }
                 return f.sort((a,b) => b.timestamp?.localeCompare(a.timestamp || '') || 0);
             }, [sales, searchTerm, filterDate]);
 
+            // --- CORREÇÃO AQUI: BLINDAGEM CONTRA NOME DE CLIENTE VAZIO NA BUSCA ---
             const filteredClients = useMemo(() => {
                 if (!clientSearchTerm) return clients;
                 const l = clientSearchTerm.toLowerCase();
-                return clients.filter(c => c.name.toLowerCase().includes(l) || (c.cpf && c.cpf.includes(l)));
+                // Protege c.name contra null/undefined
+                return clients.filter(c => (c.name || '').toLowerCase().includes(l) || (c.cpf && c.cpf.includes(l)));
             }, [clients, clientSearchTerm]);
 
             const paginatedSales = useMemo(() => {
@@ -1417,6 +1422,38 @@
                         <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md no-print animate-in fade-in duration-300">
                             <div className="bg-white rounded-[2.5rem] p-10 text-center max-w-md w-full animate-in zoom-in-95 shadow-2xl relative overflow-hidden">
                                 <div className="absolute top-0 left-0 w-full h-2 bg-slate-800"></div><div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner"><Icons.Lock className="w-10 h-10 text-slate-600"/></div><h3 className="font-bold text-2xl mb-2 text-slate-800 font-display">Data Bloqueada</h3><p className="text-sm text-slate-500 mb-8 font-medium">Insira a senha gerencial para alterar a data.</p><input type="password" value={dateLockPassword} onChange={e => setDateLockPassword(e.target.value)} className="w-full p-5 border border-slate-200 rounded-2xl text-center mb-8 font-bold outline-none focus:ring-4 focus:ring-odoo-100 focus:border-odoo-500 transition-all text-xl placeholder:font-normal bg-slate-50 focus:bg-white" placeholder="Senha" autoFocus /><div className="flex gap-4"><button onClick={() => { setDateLockModalOpen(false); setDateLockPassword(''); }} className="flex-1 p-4 bg-slate-50 rounded-2xl font-bold text-slate-600 hover:bg-slate-100 transition-colors active-scale">Cancelar</button><button onClick={async () => { if (dateLockPassword === MANAGER_PASSWORD) { setIsDateLocked(false); setDateLockModalOpen(false); setDateLockPassword(''); showToast("Data liberada!"); } else showToast("Senha incorreta", "error"); }} className="flex-1 p-4 bg-slate-800 text-white rounded-2xl font-bold hover:bg-slate-900 shadow-lg shadow-slate-500/30 transition-all active-scale">Liberar</button></div>
+                            </div>
+                        </div>
+                    )}
+                    {clientSearchModalOpen && (
+                        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm no-print animate-in fade-in duration-200">
+                            <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-in zoom-in-95 overflow-hidden flex flex-col max-h-[80vh]">
+                                <div className="p-6 border-b border-slate-100 flex justify-between font-bold items-center text-xl bg-slate-50/50 font-display"><h3>Selecionar Cliente</h3><button onClick={() => setClientSearchModalOpen(false)} className="p-3 hover:bg-slate-100 rounded-2xl transition-colors"><Icons.X className="w-6 h-6 text-slate-400"/></button></div>
+                                <div className="p-6"><div className="relative group"><Icons.Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-hover:text-odoo-500 transition-colors"/><input type="text" placeholder="Digite Nome ou CPF..." value={clientSearchTerm} onChange={e => setClientSearchTerm(e.target.value)} className="w-full pl-14 pr-5 py-5 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-odoo-100 focus:border-odoo-500 transition-all text-lg shadow-sm font-medium" autoFocus /></div></div>
+                                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                                    {filteredClients.map(c => (<div key={c.id} onClick={() => { fillClientData(c); setClientSearchModalOpen(false); }} className="p-5 mx-2 mb-3 border border-slate-100 rounded-2xl hover:bg-odoo-50 hover:border-odoo-200 cursor-pointer flex justify-between items-center transition-all group shadow-sm hover:shadow-md hover:-translate-y-0.5 duration-300"><div><div className="font-bold text-slate-700 text-lg group-hover:text-odoo-800">{c.name}</div><div className="text-sm text-slate-400 font-mono group-hover:text-odoo-500 bg-slate-50 inline-block px-2 py-0.5 rounded mt-1">{c.cpf}</div></div><div className="p-3 bg-slate-100 rounded-xl group-hover:bg-white text-slate-400 group-hover:text-odoo-500 transition-colors shadow-sm"><Icons.Plus className="w-6 h-6"/></div></div>))}
+                                    {filteredClients.length === 0 && <div className="p-10 text-center text-slate-400 text-sm italic">Nenhum cliente encontrado.</div>}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    {clientHistoryModalOpen && selectedClientHistory && (
+                        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md no-print animate-in fade-in duration-300" onClick={() => setClientHistoryModalOpen(false)}>
+                            <div className="bg-white rounded-[3rem] w-full max-w-4xl max-h-[85vh] overflow-hidden shadow-2xl flex flex-col animate-in zoom-in-95 duration-300 border border-white/20" onClick={e => e.stopPropagation()}>
+                                <div className="p-8 border-b border-slate-100 bg-white/80 backdrop-blur-md flex justify-between items-center sticky top-0 z-10"><div><h3 className="font-bold text-2xl text-slate-800 flex items-center gap-3 font-display"><div className="p-3 bg-slate-100 rounded-2xl shadow-sm text-slate-600"><Icons.History className="w-6 h-6"/></div> Histórico de Compras</h3><p className="text-base text-slate-500 mt-2 ml-2 font-medium">{(selectedClientHistory.client.name || 'Cliente')} • <span className="font-mono text-sm">{selectedClientHistory.client.cpf}</span></p></div><button onClick={() => setClientHistoryModalOpen(false)} className="p-4 hover:bg-slate-100 rounded-2xl transition-colors"><Icons.X className="w-6 h-6 text-slate-400"/></button></div>
+                                <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50 custom-scrollbar">
+                                    {selectedClientHistory.history.length === 0 ? (<div className="text-center py-20"><div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300 shadow-inner"><Icons.History className="w-12 h-12"/></div><p className="text-slate-400 font-bold text-lg">Nenhuma compra registrada.</p></div>) : (
+                                        <div className="space-y-6">
+                                            {selectedClientHistory.history.map(sale => (
+                                                <div key={sale.id} className="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-8 flex flex-col md:flex-row gap-8 hover:shadow-xl transition-all hover:-translate-y-1 duration-300 group">
+                                                    <div className="md:w-36 flex flex-col justify-center items-center bg-slate-50 rounded-3xl p-6 border border-slate-100 group-hover:bg-odoo-50 group-hover:border-odoo-100 transition-colors"><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 group-hover:text-odoo-400">Data</span><span className="text-3xl font-black text-slate-800 group-hover:text-odoo-700">{formatDateBR(sale.date).split('/')[0]}</span><span className="text-sm font-bold text-slate-500 uppercase">{new Date(sale.date).toLocaleString('default', { month: 'short' })}</span><span className="text-xs font-bold text-slate-300 mt-1">{formatDateBR(sale.date).split('/')[2]}</span></div>
+                                                    <div className="flex-1"><span className="text-xs font-bold text-slate-400 uppercase mb-4 block tracking-widest pl-1">Produtos</span><div className="space-y-3">{(sale.items || []).map((item, idx) => (<div key={idx} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100/50 hover:bg-white hover:shadow-sm transition-all"><div><span className="font-bold text-sm text-odoo-600 bg-odoo-50 px-2 py-1 rounded-lg mr-2 border border-odoo-100">{item.quantity}x</span> <span className="text-base font-bold text-slate-700">{item.description}</span> <div className="text-xs text-slate-400 ml-1 mt-1 font-medium pl-9 uppercase tracking-wide">{item.ram_storage} • {item.color}</div></div><div className="text-right font-bold text-base text-slate-700 font-mono">{formatCurrency((item.unitPrice * item.quantity) - item.discount)}</div></div>))}</div></div>
+                                                    <div className="md:w-64 flex flex-col justify-between border-l border-slate-100 pl-8 border-dashed"><div><span className="text-xs font-bold text-slate-400 uppercase mb-3 block tracking-widest">Pagamento</span><div className="space-y-2">{(sale.payments || []).map((p, idx) => (<div key={idx} className="flex justify-between text-xs font-bold text-slate-600 uppercase"><span>{p.method}</span><span className="font-mono">{formatCurrency(p.amount)}</span></div>))}</div></div><div className="mt-6 pt-6 border-t border-slate-100 flex justify-between items-center"><span className="text-xs font-black text-slate-400 uppercase tracking-wider">Total</span><span className="text-2xl font-black text-slate-800">{formatCurrency(sale.amountPaid || sale.amount)}</span></div><button onClick={() => openReceipt(sale)} className="w-full mt-4 py-3 bg-slate-800 text-white text-xs font-bold rounded-xl hover:bg-slate-900 transition-all shadow-lg shadow-slate-500/20 active:scale-95 uppercase tracking-wide">Ver Recibo</button></div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )}
