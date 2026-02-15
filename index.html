@@ -237,6 +237,34 @@
         const PAYMENT_TYPES = ["Integral", "Entrada", "Restante", "Parte do Pagamento"];
         const UF_LIST = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
 
+        // TAREFAS DE ROTINA (DEFINIDAS FORA PARA ACESSO GLOBAL)
+        const ROUTINE_TASKS = {
+            morning: [
+                "Fazer Café e limpar a area do cafe",
+                "Limpeza da Loja Geral, Varrer, Passar Pano, Limpar Vitrine e Aparelhos",
+                "Postar Bom dia, Facebook, What's app e Instagram",
+                "Responder Clientes e verificar mensagens em todas redes sociais.",
+                "Enviar os Contratos das vendas do dia anterior",
+                "Verificar Preços da vitrine",
+                "Contagem de estoque de aparelhos"
+            ],
+            afternoon: [
+                "Responder Clientes e verificar mensagens nas redes sociais",
+                "Fazer Postagens no Facebook nos grupos (feira do rolo)",
+                "Postar no What's app",
+                "Postar Reels com Capa Personalizada",
+                "Fazer post na pagina do Facebook",
+                "Fazer videos da Loja para novos Posts (atendimento, clientes, lançamentos e criativos)",
+                "Entrega de panfletos em dias fracos ou parados"
+            ],
+            evening: [
+                "Verificar seus lançamentos e seus clientes.",
+                "Pos vendas e seus clientes",
+                "Buscar diariamente novos clientes",
+                "Controle de vendas Individuais"
+            ]
+        };
+
         // METAS
         const ELIGIBLE_FOR_GOAL = ["HONOR", "IPHONE", "MOTOROLA", "POCO", "REALME", "REDMI", "SAMSUNG"];
         const GOAL_SELLERS = 45;
@@ -307,45 +335,50 @@
             );
         };
 
-        const SimpleCalendar = () => {
+        // --- COMPONENTE DE ALERTA DE TAREFA ---
+        const TaskAlertModal = ({ isOpen, onClose, onGoToCalendar, message, phase, userName }) => {
+            if (!isOpen) return null;
+            
+            return (
+                <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-300 border-4 border-yellow-400 relative overflow-hidden text-center">
+                        <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce shadow-inner">
+                            <Icons.AlertTriangle className="w-10 h-10 text-yellow-600" />
+                        </div>
+                        <h3 className="font-black text-3xl mb-2 text-slate-800 font-display uppercase tracking-tight">Atenção</h3>
+                        <p className="text-lg font-bold text-odoo-600 mb-4">{userName}</p>
+                        <p className="text-slate-600 mb-2 font-medium">Não esqueça de completar suas tarefas diárias</p>
+                        <div className="bg-yellow-50 py-2 px-4 rounded-lg inline-block mb-4 border border-yellow-200">
+                            <p className="font-black text-yellow-700 uppercase tracking-widest text-sm">{phase}</p>
+                        </div>
+                        <p className="text-slate-500 mb-8 font-medium">Existe Pendências para Finaliza-las!</p>
+                        
+                        <div className="flex flex-col gap-3">
+                            <button 
+                                onClick={onGoToCalendar} 
+                                className="w-full p-4 bg-gradient-to-r from-odoo-500 to-odoo-600 hover:from-odoo-600 hover:to-odoo-700 text-white rounded-2xl font-bold shadow-lg shadow-odoo-500/30 transition-all active-scale uppercase tracking-wide flex items-center justify-center gap-2"
+                            >
+                                <Icons.Calendar className="w-5 h-5" /> Verificar Calendário
+                            </button>
+                            <button 
+                                onClick={onClose} 
+                                className="w-full p-4 bg-slate-100 text-slate-500 hover:text-slate-700 hover:bg-slate-200 rounded-2xl font-bold transition-colors active-scale uppercase tracking-wide text-xs"
+                            >
+                                Ver depois (fecha alerta)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const SimpleCalendar = ({ routineState, toggleRoutine }) => {
             const [currentDate, setCurrentDate] = useState(new Date());
             const [reminders, setReminders] = useState([]);
             const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
             const [newReminder, setNewReminder] = useState({ desc: '', time: '', type: 'Geral' });
             
-            const [routineState, setRoutineState] = useState({});
-
-            const toggleRoutine = (category, index) => {
-                const key = `${category}-${index}`;
-                setRoutineState(prev => ({...prev, [key]: !prev[key]}));
-            };
-
-            const routineTasks = {
-                morning: [
-                    "Fazer Café e limpar a area do cafe",
-                    "Limpeza da Loja Geral, Varrer, Passar Pano, Limpar Vitrine e Aparelhos",
-                    "Postar Bom dia, Facebook, What's app e Instagram",
-                    "Responder Clientes e verificar mensagens em todas redes sociais.",
-                    "Enviar os Contratos das vendas do dia anterior",
-                    "Verificar Preços da vitrine",
-                    "Contagem de estoque de aparelhos"
-                ],
-                afternoon: [
-                    "Responder Clientes e verificar mensagens nas redes sociais",
-                    "Fazer Postagens no Facebook nos grupos (feira do rolo)",
-                    "Postar no What's app",
-                    "Postar Reels com Capa Personalizada",
-                    "Fazer post na pagina do Facebook",
-                    "Fazer videos da Loja para novos Posts (atendimento, clientes, lançamentos e criativos)",
-                    "Entrega de panfletos em dias fracos ou parados"
-                ],
-                evening: [
-                    "Verificar seus lançamentos e seus clientes.",
-                    "Pos vendas e seus clientes",
-                    "Buscar diariamente novos clientes",
-                    "Controle de vendas Individuais"
-                ]
-            };
+            // routineState e toggleRoutine agora vêm via props do App
             
             useEffect(() => {
                 const saved = localStorage.getItem('lembretes_odoo_v1');
@@ -506,7 +539,7 @@
                                     <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
                                     <div className="font-bold text-slate-700 uppercase tracking-widest text-xs">Início - Manhã</div>
                                 </div>
-                                {routineTasks.morning.map((task, idx) => {
+                                {ROUTINE_TASKS.morning.map((task, idx) => {
                                     const isChecked = routineState[`morning-${idx}`];
                                     return (
                                         <div key={idx} onClick={() => toggleRoutine('morning', idx)} className={`flex items-start gap-4 p-4 rounded-2xl border transition-all cursor-pointer group duration-300 hover:scale-[1.02] active:scale-[0.98] ${isChecked ? 'bg-green-50/50 border-green-200 shadow-inner' : 'bg-white border-white hover:border-slate-200 hover:shadow-md shadow-sm'}`}>
@@ -525,7 +558,7 @@
                                     <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
                                     <div className="font-bold text-slate-700 uppercase tracking-widest text-xs">Meio - Tarde</div>
                                 </div>
-                                {routineTasks.afternoon.map((task, idx) => {
+                                {ROUTINE_TASKS.afternoon.map((task, idx) => {
                                     const isChecked = routineState[`afternoon-${idx}`];
                                     return (
                                         <div key={idx} onClick={() => toggleRoutine('afternoon', idx)} className={`flex items-start gap-4 p-4 rounded-2xl border transition-all cursor-pointer group duration-300 hover:scale-[1.02] active:scale-[0.98] ${isChecked ? 'bg-green-50/50 border-green-200 shadow-inner' : 'bg-white border-white hover:border-slate-200 hover:shadow-md shadow-sm'}`}>
@@ -544,7 +577,7 @@
                                     <div className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse"></div>
                                     <div className="font-bold text-slate-700 uppercase tracking-widest text-xs">Fim - Fechamento</div>
                                 </div>
-                                {routineTasks.evening.map((task, idx) => {
+                                {ROUTINE_TASKS.evening.map((task, idx) => {
                                     const isChecked = routineState[`evening-${idx}`];
                                     return (
                                         <div key={idx} onClick={() => toggleRoutine('evening', idx)} className={`flex items-start gap-4 p-4 rounded-2xl border transition-all cursor-pointer group duration-300 hover:scale-[1.02] active:scale-[0.98] ${isChecked ? 'bg-green-50/50 border-green-200 shadow-inner' : 'bg-white border-white hover:border-slate-200 hover:shadow-md shadow-sm'}`}>
@@ -725,6 +758,130 @@
             // CONTROLE DE AÇÃO PENDENTE DE AUTORIZAÇÃO
             const [pendingAuthAction, setPendingAuthAction] = useState(null); // 'save' | 'reset' | 'edit' | 'delete' | 'update_client'
             const [pendingEditItem, setPendingEditItem] = useState(null); // Item a ser editado
+
+            // --- ESTADO PARA AS TAREFAS DE ROTINA (MOVIDO PARA O APP PARA O ALERTA FUNCIONAR) ---
+            const [routineState, setRoutineState] = useState(() => {
+                // Recuperar estado das tarefas salvas hoje, se houver
+                const today = new Date().toISOString().split('T')[0];
+                const saved = localStorage.getItem(`rotina_state_${today}`);
+                return saved ? JSON.parse(saved) : {};
+            });
+            
+            // --- ESTADOS PARA O SISTEMA DE ALERTA ---
+            const [alertModalOpen, setAlertModalOpen] = useState(false);
+            const [alertData, setAlertData] = useState({ message: '', phase: '' });
+            const [lastAlertTime, setLastAlertTime] = useState(0); // Timestamp do último alerta exibido
+
+            const toggleRoutine = (category, index) => {
+                const key = `${category}-${index}`;
+                setRoutineState(prev => {
+                    const newState = {...prev, [key]: !prev[key]};
+                    const today = new Date().toISOString().split('T')[0];
+                    localStorage.setItem(`rotina_state_${today}`, JSON.stringify(newState));
+                    return newState;
+                });
+            };
+
+            const playAlertSound = () => {
+                // Oscillator beep simples para não depender de arquivos
+                try {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioContext) return;
+                    
+                    const ctx = new AudioContext();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, ctx.currentTime); // A5
+                    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.5);
+                    
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+                    
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.5);
+                } catch (e) {
+                    console.error("Erro ao tocar som", e);
+                }
+            };
+
+            // --- EFEITO PARA MONITORAR ALERTAS (A CADA MINUTO) ---
+            useEffect(() => {
+                if (!isLoggedIn) return;
+
+                const checkAlerts = () => {
+                    const now = new Date();
+                    const currentHour = now.getHours();
+                    const currentMinute = now.getMinutes();
+                    const currentTimeInMinutes = currentHour * 60 + currentMinute;
+                    
+                    // Converte horários para minutos para facilitar comparação
+                    const morningStart = 9 * 60 + 30;  // 09:30
+                    const morningEnd = 13 * 60;        // 13:00
+                    const afternoonStart = 13 * 60 + 30; // 13:30
+                    const afternoonEnd = 16 * 60 + 30;   // 16:30
+                    const eveningStart = 17 * 60;        // 17:00
+                    const eveningEnd = 18 * 60 + 30;     // 18:30
+
+                    // Verifica se já passou 15 minutos desde o último alerta (900000 ms)
+                    const timeSinceLastAlert = Date.now() - lastAlertTime;
+                    if (timeSinceLastAlert < 15 * 60 * 1000) return;
+
+                    let shouldTrigger = false;
+                    let phaseName = "";
+                    let phaseKey = "";
+
+                    // Lógica Manhã
+                    if (currentTimeInMinutes >= morningStart && currentTimeInMinutes <= morningEnd) {
+                        const allDone = ROUTINE_TASKS.morning.every((_, idx) => routineState[`morning-${idx}`]);
+                        if (!allDone) {
+                            shouldTrigger = true;
+                            phaseName = "Início - Manhã";
+                            phaseKey = "morning";
+                        }
+                    }
+                    // Lógica Tarde
+                    else if (currentTimeInMinutes >= afternoonStart && currentTimeInMinutes <= afternoonEnd) {
+                        const allDone = ROUTINE_TASKS.afternoon.every((_, idx) => routineState[`afternoon-${idx}`]);
+                        if (!allDone) {
+                            shouldTrigger = true;
+                            phaseName = "Meio - Tarde";
+                            phaseKey = "afternoon";
+                        }
+                    }
+                    // Lógica Fechamento
+                    else if (currentTimeInMinutes >= eveningStart && currentTimeInMinutes <= eveningEnd) {
+                        const allDone = ROUTINE_TASKS.evening.every((_, idx) => routineState[`evening-${idx}`]);
+                        if (!allDone) {
+                            shouldTrigger = true;
+                            phaseName = "Fim - Fechamento";
+                            phaseKey = "evening";
+                        }
+                    }
+
+                    if (shouldTrigger) {
+                        setAlertData({
+                            phase: phaseName,
+                            message: `(Nome vendedor logado) Não esqueça de completar suas tarefas diárias\n${phaseName}\nExiste Pendências para Finaliza-las!`
+                        });
+                        setAlertModalOpen(true);
+                        setLastAlertTime(Date.now());
+                        playAlertSound();
+                    }
+                };
+
+                // Verifica a cada 60 segundos
+                const interval = setInterval(checkAlerts, 60000);
+                
+                // Primeira verificação imediata (se não tiver alertado recentemente)
+                checkAlerts();
+
+                return () => clearInterval(interval);
+            }, [isLoggedIn, routineState, lastAlertTime]);
 
             // -- DIRTY STATE WARNING --
             useEffect(() => {
@@ -1294,6 +1451,19 @@
             return (
                 <div className="min-h-screen bg-slate-50 font-sans pb-24 print:bg-white print:pb-0">
                     <ToastContainer toasts={toasts} removeToast={id => setToasts(p => p.filter(t => t.id !== id))} />
+                    
+                    {/* ALERTA DE TAREFA PENDENTE */}
+                    <TaskAlertModal 
+                        isOpen={alertModalOpen}
+                        onClose={() => setAlertModalOpen(false)}
+                        onGoToCalendar={() => {
+                            setAlertModalOpen(false);
+                            setCurrentView('calendar');
+                        }}
+                        message={alertData.message}
+                        phase={alertData.phase}
+                        userName={settings.employeeName}
+                    />
 
                     <div className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-50 no-print transition-all duration-300">
                         <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
@@ -1338,7 +1508,7 @@
 
                     <div className="max-w-6xl mx-auto p-6 space-y-8 animate-fade-in-up">
                         {currentView === 'calendar' ? (
-                            <SimpleCalendar />
+                            <SimpleCalendar routineState={routineState} toggleRoutine={toggleRoutine} />
                         ) : currentView === 'performance' ? (
                             <div className="space-y-8">
                                 {/* ... (Mantendo código existente) ... */}
@@ -1734,7 +1904,21 @@
                                             {filteredClients.map(c => (
                                                 <tr key={c.id} className="hover:bg-odoo-50/40 transition-colors text-sm text-slate-600 group">
                                                     <td className="p-5 pl-8"><div className="font-bold text-slate-800 leading-tight text-base group-hover:text-odoo-700 transition-colors">{c.name}</div><div className="text-xs text-slate-400 mt-1 font-mono">{c.cpf}</div></td>
-                                                    <td className="p-5"><div>{c.phone}</div><div className="text-[10px] italic text-slate-400">{c.email}</div></td>
+                                                    <td className="p-5">
+                                                        <div className="flex items-center gap-2">
+                                                            <span>{c.phone}</span>
+                                                            {c.phone && (
+                                                                <button 
+                                                                    onClick={() => window.open(`https://wa.me/55${c.phone.replace(/\D/g, '')}`, '_blank')} 
+                                                                    className="text-slate-300 hover:text-green-500 transition-all hover:scale-110 active:scale-95" 
+                                                                    title="Chamar no WhatsApp"
+                                                                >
+                                                                    <Icons.WhatsApp className="w-4 h-4" />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-[10px] italic text-slate-400">{c.email}</div>
+                                                    </td>
                                                     <td className="p-5"><span className="bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-xs font-bold border border-slate-200">{c.createdBy || '-'}</span></td>
                                                     <td className="p-5 text-right pr-8">
                                                         <button onClick={() => handleViewHistory(c)} className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold mr-2 hover:bg-slate-50 hover:border-slate-300 hover:shadow-sm transition-all active-scale">Histórico</button>
