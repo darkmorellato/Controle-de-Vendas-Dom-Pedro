@@ -335,6 +335,24 @@
             );
         };
 
+        const HeaderClock = () => {
+            const [time, setTime] = useState(new Date());
+
+            useEffect(() => {
+                const interval = setInterval(() => setTime(new Date()), 1000);
+                return () => clearInterval(interval);
+            }, []);
+
+            return (
+                <div className="hidden md:flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-xl border border-slate-200 shadow-inner">
+                    <Icons.Clock className="w-4 h-4 text-odoo-500" />
+                    <span className="font-mono text-sm font-bold text-slate-700 tracking-wide">
+                        {time.toLocaleTimeString('pt-BR')}
+                    </span>
+                </div>
+            );
+        };
+
         // --- COMPONENTE DE ALERTA DE TAREFA ---
         const TaskAlertModal = ({ isOpen, onClose, onGoToCalendar, message, phase, userName }) => {
             if (!isOpen) return null;
@@ -1480,12 +1498,7 @@
                             </div>
                             
                             {/* RELÓGIO EM TEMPO REAL - Versão Header Claro */}
-                            <div className="hidden md:flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-xl border border-slate-200 shadow-inner">
-                                <Icons.Clock className="w-4 h-4 text-odoo-500" />
-                                <span className="font-mono text-sm font-bold text-slate-700 tracking-wide">
-                                    {new Date().toLocaleTimeString('pt-BR')}
-                                </span>
-                            </div>
+                            <HeaderClock />
 
                             <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
                                 <button onClick={() => setCurrentView(currentView === 'clients' ? 'dashboard' : 'clients')} className={`p-2.5 rounded-xl transition-all duration-300 ${currentView === 'clients' ? 'bg-white text-odoo-600 shadow-md ring-1 ring-black/5' : 'text-slate-500 hover:bg-white/50 hover:text-slate-700'}`} title="Carteira de Clientes">
@@ -2192,10 +2205,16 @@
                                                                                         <div className="flex-1 min-w-0 leading-snug whitespace-normal">
                                                                                             <span className="font-bold text-odoo-600 bg-odoo-50 px-1.5 rounded mr-1.5 text-xs">{i.quantity}x</span> 
                                                                                             <span className="font-semibold text-slate-700">{i.type} - {i.description}</span>
-                                                                                            <div className="text-[10px] text-slate-400 uppercase tracking-wider mt-1 font-bold">{i.ram_storage} • {i.color} • {i.financed === 'Sim' ? 'Financiado' : 'À Vista'}</div>
+                                                                                            <div className="text-[10px] text-slate-400 uppercase tracking-wider mt-1 font-bold flex flex-wrap gap-1">
+                                                                                                {i.ram_storage && <span>{i.ram_storage} •</span>}
+                                                                                                {i.color && <span>{i.color} •</span>}
+                                                                                                {i.imei && <span className="text-slate-500">IMEI: {i.imei} •</span>}
+                                                                                                <span>{i.financed === 'Sim' ? 'Financiado' : 'À Vista'}</span>
+                                                                                            </div>
                                                                                         </div>
                                                                                         <div className="text-right min-w-[90px]">
                                                                                             <div className="font-bold text-slate-700">{formatCurrency((i.unitPrice * i.quantity) - i.discount)}</div>
+                                                                                            <div className="text-[10px] text-slate-400 font-medium mb-0.5">Unit: {formatCurrency(i.unitPrice)}</div>
                                                                                             {i.discount > 0 && <div className="text-[10px] text-red-400 font-bold">-{formatCurrency(i.discount)}</div>}
                                                                                             {(s.category === 'Troca' || s.category === 'Devolução') && (
                                                                                                 <div className={`text-[9px] font-black uppercase tracking-wider mt-0.5 ${i.unitPrice > 0 ? 'text-green-500' : 'text-red-500'}`}>
