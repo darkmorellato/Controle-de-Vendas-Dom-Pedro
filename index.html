@@ -74,7 +74,39 @@
             }
         }
     </script>
-    
+
+    <!-- FIREBASE SETUP -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+    <script>
+      // Configuração do Firebase fornecida
+      const firebaseConfig = {
+        apiKey: "AIzaSyCRqxsdvfjxEqknWEyeoswxweELL1ORl9o",
+        authDomain: "miplace-dompedro-sales-control.firebaseapp.com",
+        projectId: "miplace-dompedro-sales-control",
+        storageBucket: "miplace-dompedro-sales-control.firebasestorage.app",
+        messagingSenderId: "404194209741",
+        appId: "1:404194209741:web:7d732e235a2344c2011e84",
+        measurementId: "G-ZEJSPSMTP0"
+      };
+
+      // Inicializa a conexão
+      // Verifica se já não foi inicializado para evitar erros de hot-reload
+      if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+      } else {
+          firebase.app(); // se já existe, usa o padrão
+      }
+      
+      // Cria o atalho 'db' para acessarmos o banco de dados facilmente
+      const db = firebase.firestore();
+      
+      // Log para confirmar conexão no console do navegador
+      console.log("Firebase conectado com sucesso:", firebaseConfig.projectId);
+    </script>
+
     <!-- React & Babel -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -1958,7 +1990,7 @@
                                                         <h3 className="text-xl font-bold text-slate-700 flex items-center gap-3 font-display"><div className="p-2.5 bg-white rounded-xl shadow-lg shadow-odoo-100 text-odoo-500"><Icons.User className="w-6 h-6"/></div> Dados do Cliente</h3>
                                                         <div className="flex gap-3">
                                                             <button type="button" onClick={() => { setClientSearchTerm(''); setClientSearchModalOpen(true); }} className="px-5 py-3 bg-white text-slate-600 rounded-xl text-xs font-bold hover:shadow-lg transition-all active:scale-95 border border-slate-100">Importar</button>
-                                                            <button type="button" onClick={handleSaveClient} className="px-5 py-3 bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-slate-500/20 hover:bg-slate-900 transition-all active:scale-95"><Icons.Save className="w-4 h-4"/> Salvar Cadastro</button>
+                                                            <button type="button" onClick={handleSaveClient} className="px-5 py-3 bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-slate-500/20 hover:bg-slate-900 transition-all active:scale:95"><Icons.Save className="w-4 h-4"/> Salvar Cadastro</button>
                                                         </div>
                                                     </div>
                                                     <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
