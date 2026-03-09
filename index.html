@@ -449,7 +449,8 @@
         const GOAL_SELLERS = 45;
         const GOAL_MANAGER = 130;
         const COMMISSION_PER_UNIT = 10;
-        const MANAGER_PASSWORD = "#Ark343390";
+        const MANAGER_PASSWORD = "#Banana@3433";
+        const ADM_PASSWORD = "#Ark343390";
         const MANAGER_HASH = null; // Senha gerencial em texto puro nesta versão
         const APP_VERSION = "v2.4.0";
         const SALES_WINDOW_DAYS = 90; // Carregar apenas os últimos N dias do Firestore
@@ -1749,7 +1750,7 @@
             const performLogin = useCallback(async () => {
                 // Login ADM
                 if (selectedUserForLogin === ADM_NAME) {
-                    if (loginPasswordInput === MANAGER_PASSWORD) {
+                    if (loginPasswordInput === ADM_PASSWORD) {
                         setSettings({ employeeName: ADM_NAME }); setIsAdm(true); setIsLoggedIn(true); setLoginModalOpen(false); showToast(`Bem-vindo, ${ADM_NAME}! 🔑`);
                     } else showToast("Senha ADM incorreta", "error");
                     return;
