@@ -15,7 +15,7 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <!-- Fonte Mono para Recibo -->
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap"
         rel="stylesheet">
 
@@ -32,7 +32,7 @@
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
                         display: ['"Space Grotesk"', 'sans-serif'],
-                        mono: ['"Share Tech Mono"', 'monospace'],
+                        mono: ['"Roboto Mono"', 'monospace'],
                         receipt: ['"Space Mono"', 'monospace']
                     },
                     colors: {
@@ -420,7 +420,8 @@
             CloudUpload: (props) => <Icon {...props} path='<polyline points="16 16 12 12 8 16"></polyline><line x1="12" y1="12" x2="12" y2="21"></line><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>' />,
             HelpCircle: (props) => <Icon {...props} path='<circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line>' />,
             Calculator: (props) => <Icon {...props} path='<rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path>' />,
-            Wrench: (props) => <Icon {...props} path='<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>' />
+            Wrench: (props) => <Icon {...props} path='<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>' />,
+            Share2: (props) => <Icon {...props} path='<circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>' />
         };
 
         const SELLERS_LIST = ["Bia Gomez", "Ana Reina", "Pedro Cardoso", "Lidia Gomez", "Davison Cerqueira"];
@@ -1005,6 +1006,7 @@
                     setSettings(p);
                     if (p.employeeName) {
                         setSelectedUserForLogin(p.employeeName);
+                        if (p.employeeName === ADM_NAME) setIsAdm(true);
                         setSessionPromptOpen(true);
                     }
                 }
@@ -1200,7 +1202,7 @@
                 if (newItemImei && newItemImei.trim().length > 0) {
                     const imeiClean = newItemImei.trim();
                     // Verificar duplicata no formulário atual
-                    const inCurrentForm = items.some(i => i.imei && i.imei.trim() === imeiClean);
+                    const inCurrentForm = items.some(i => i.imei && i.imei.trim() === imeiClean && i.id !== editingItemId);
                     if (inCurrentForm) { showToast("⚠️ IMEI já adicionado nesta venda!", "error"); return; }
                     // Verificar duplicata nas vendas históricas (excluindo a venda em edição)
                     const inHistory = sales.some(s => {
@@ -1836,7 +1838,7 @@
                                     </button>
                                 </div>
                             </div>
-                            {sessionPromptOpen && (<div className="absolute inset-0 rounded-[3rem] z-[25] flex flex-col items-center justify-center p-10 animate-in fade-in zoom-in-95 duration-500" style={{ background: 'rgba(255,255,255,0.85)', backdropFilter:'blur(20px)', borderTop: '1px solid rgba(59,130,246,0.2)' }}><div className="w-16 h-16 rounded-full flex items-center justify-center mb-6 shadow-sm" style={{ background: 'linear-gradient(135deg,#2563eb,#3b82f6)', border: '1px solid rgba(255,255,255,0.6)', boxShadow:'0 4px 16px rgba(37,99,235,0.3)' }}><Icons.User className="w-8 h-8" style={{ color: '#ffffff' }} /></div><h3 className="text-3xl text-center font-bold mb-4 font-display" style={{ color: '#1e293b' }}>Bem-vindo de volta!</h3><p className="mb-10 text-sm font-medium text-center" style={{ color: '#64748b' }}>Deseja continuar logado como <b>{selectedUserForLogin}</b>?</p><div className="flex gap-4 w-full"><button onClick={() => { setSessionPromptOpen(false); setSettings({ employeeName: null }); }} className="flex-1 p-5 rounded-[2rem] font-bold transition-all hover:bg-blue-50 active-scale" style={{ background: 'transparent', border: '1.5px solid rgba(59,130,246,0.25)', color: '#64748b' }}>Não, Sair</button><button onClick={() => { setIsLoggedIn(true); setSessionPromptOpen(false); showToast(`Sessão restaurada para ${selectedUserForLogin}`); }} className="flex-1 rounded-[2rem] font-bold active-scale p-5 uppercase tracking-widest" style={{ background:'linear-gradient(135deg,#2563eb 0%,#3b82f6 50%,#60a5fa 100%)', border:'2px solid rgba(255,255,255,0.7)', boxShadow:'0 4px 18px rgba(37,99,235,0.35)', color:'#ffffff', transition:'transform 0.15s ease, box-shadow 0.15s ease' }} onMouseEnter={e=>{ e.currentTarget.style.transform='translateY(-2px) scale(1.03)'; e.currentTarget.style.boxShadow='0 8px 28px rgba(37,99,235,0.5)'; }} onMouseLeave={e=>{ e.currentTarget.style.transform='translateY(0) scale(1)'; e.currentTarget.style.boxShadow='0 4px 18px rgba(37,99,235,0.35)'; }} onMouseDown={e=>e.currentTarget.style.transform='scale(0.97)'} onMouseUp={e=>e.currentTarget.style.transform='translateY(-2px) scale(1.03)'}>Sim, Continuar</button></div></div>)}
+                            {sessionPromptOpen && (<div className="absolute inset-0 rounded-[3rem] z-[25] flex flex-col items-center justify-center p-10 animate-in fade-in zoom-in-95 duration-500" style={{ background: 'rgba(255,255,255,0.85)', backdropFilter:'blur(20px)', borderTop: '1px solid rgba(59,130,246,0.2)' }}><div className="w-16 h-16 rounded-full flex items-center justify-center mb-6 shadow-sm" style={{ background: 'linear-gradient(135deg,#2563eb,#3b82f6)', border: '1px solid rgba(255,255,255,0.6)', boxShadow:'0 4px 16px rgba(37,99,235,0.3)' }}><Icons.User className="w-8 h-8" style={{ color: '#ffffff' }} /></div><h3 className="text-3xl text-center font-bold mb-4 font-display" style={{ color: '#1e293b' }}>Bem-vindo de volta!</h3><p className="mb-10 text-sm font-medium text-center" style={{ color: '#64748b' }}>Deseja continuar logado como <b>{selectedUserForLogin}</b>?</p><div className="flex gap-4 w-full"><button onClick={() => { setSessionPromptOpen(false); setSettings({ employeeName: null }); }} className="flex-1 p-5 rounded-[2rem] font-bold transition-all hover:bg-blue-50 active-scale" style={{ background: 'transparent', border: '1.5px solid rgba(59,130,246,0.25)', color: '#64748b' }}>Não, Sair</button><button onClick={() => { setIsLoggedIn(true); setSessionPromptOpen(false); if (selectedUserForLogin === ADM_NAME) setIsAdm(true); showToast(`Sessão restaurada para ${selectedUserForLogin}`); }} className="flex-1 rounded-[2rem] font-bold active-scale p-5 uppercase tracking-widest" style={{ background:'linear-gradient(135deg,#2563eb 0%,#3b82f6 50%,#60a5fa 100%)', border:'2px solid rgba(255,255,255,0.7)', boxShadow:'0 4px 18px rgba(37,99,235,0.35)', color:'#ffffff', transition:'transform 0.15s ease, box-shadow 0.15s ease' }} onMouseEnter={e=>{ e.currentTarget.style.transform='translateY(-2px) scale(1.03)'; e.currentTarget.style.boxShadow='0 8px 28px rgba(37,99,235,0.5)'; }} onMouseLeave={e=>{ e.currentTarget.style.transform='translateY(0) scale(1)'; e.currentTarget.style.boxShadow='0 4px 18px rgba(37,99,235,0.35)'; }} onMouseDown={e=>e.currentTarget.style.transform='scale(0.97)'} onMouseUp={e=>e.currentTarget.style.transform='translateY(-2px) scale(1.03)'}>Sim, Continuar</button></div></div>)}
                             {loginModalOpen && (<div className="absolute inset-0 rounded-[3rem] z-20 flex flex-col items-center justify-center p-10 animate-in fade-in zoom-in-95 duration-500" style={{ background: 'rgba(255,255,255,0.85)', backdropFilter:'blur(20px)', borderTop: '1px solid rgba(59,130,246,0.2)' }}><div className="w-14 h-14 rounded-full flex items-center justify-center mb-6 shadow-sm" style={{ background: 'linear-gradient(135deg,#2563eb,#3b82f6)', border: '1px solid rgba(255,255,255,0.6)', boxShadow:'0 4px 16px rgba(37,99,235,0.3)' }}><Icons.Lock className="w-6 h-6" style={{ color: '#ffffff' }} /></div><h3 className="text-3xl font-bold mb-2 font-display" style={{ color: '#1e293b' }}>Olá, {selectedUserForLogin}!</h3><p className="mb-10 text-sm font-medium" style={{ color: '#64748b' }}>Digite sua senha para acessar.</p><input type="password" value={loginPasswordInput} onChange={e => setLoginPasswordInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && performLogin()} className="w-full p-5 rounded-[2rem] text-center mb-10 font-bold outline-none transition-all text-xl placeholder:font-normal shadow-sm" style={{ background: '#fff', border: '1.5px solid rgba(59,130,246,0.4)', color: '#1e293b', boxShadow:'0 0 0 3px rgba(59,130,246,0.08)' }} placeholder="••••••" autoFocus /><div className="flex gap-4 w-full"><button onClick={() => setLoginModalOpen(false)} className="flex-1 p-5 rounded-[2rem] font-bold transition-all active-scale" style={{ background: 'transparent', border: '1.5px solid rgba(59,130,246,0.2)', color: '#64748b' }}>Voltar</button><button onClick={performLogin} className="flex-1 rounded-[2rem] font-bold active-scale p-5 uppercase tracking-widest" style={{ background:'linear-gradient(135deg,#2563eb 0%,#3b82f6 50%,#60a5fa 100%)', border:'2px solid rgba(255,255,255,0.7)', boxShadow:'0 4px 18px rgba(37,99,235,0.35)', color:'#ffffff', transition:'transform 0.15s ease, box-shadow 0.15s ease' }} onMouseEnter={e=>{ e.currentTarget.style.transform='translateY(-2px) scale(1.03)'; e.currentTarget.style.boxShadow='0 8px 28px rgba(37,99,235,0.5)'; }} onMouseLeave={e=>{ e.currentTarget.style.transform='translateY(0) scale(1)'; e.currentTarget.style.boxShadow='0 4px 18px rgba(37,99,235,0.35)'; }} onMouseDown={e=>e.currentTarget.style.transform='scale(0.97)'} onMouseUp={e=>e.currentTarget.style.transform='translateY(-2px) scale(1.03)'}>Entrar</button></div></div>)}
                         </div>
                     </div>
@@ -1890,6 +1892,15 @@
                                     title="Carteira de Clientes">
                                     {currentView !== 'clients' && <span className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none" style={{ background:'radial-gradient(ellipse at 50% 0%, rgba(14,165,233,0.18) 0%, transparent 70%)', transition:'opacity 0.3s' }}></span>}
                                     {currentView === 'clients' ? <Icons.Home className="w-5 h-5" /> : <Icons.Users className="w-5 h-5 relative z-10" />}
+                                </button>
+
+                                <button onClick={() => setCurrentView(currentView === 'referrals' ? 'dashboard' : 'referrals')}
+                                    className={`p-3 rounded-[1.5rem] transition-all duration-300 active-scale relative overflow-hidden group ${currentView === 'referrals' ? 'btn-gold text-onyx-900 shadow-md ring-1 ring-black/5' : 'text-slate-400'}`}
+                                    onMouseEnter={e=>{ if(currentView!=='referrals'){ e.currentTarget.style.background='rgba(255,255,255,0.08)'; e.currentTarget.style.boxShadow='0 0 14px rgba(14,165,233,0.25)'; }}}
+                                    onMouseLeave={e=>{ if(currentView!=='referrals'){ e.currentTarget.style.background=''; e.currentTarget.style.boxShadow=''; }}}
+                                    title="Indicações">
+                                    {currentView !== 'referrals' && <span className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none" style={{ background:'radial-gradient(ellipse at 50% 0%, rgba(14,165,233,0.18) 0%, transparent 70%)', transition:'opacity 0.3s' }}></span>}
+                                    <Icons.Share2 className="w-5 h-5 relative z-10" />
                                 </button>
 
                                 <button onClick={() => setCurrentView(currentView === 'performance' ? 'dashboard' : 'performance')}
@@ -2136,10 +2147,26 @@
                                             const neg=(s.items||[]).filter(i=>ELIGIBLE_FOR_GOAL.includes(i.type)&&i.unitPrice<0);
                                             return acc+pos.reduce((sum,i)=>sum+i.quantity,0)-neg.reduce((sum,i)=>sum+Math.abs(i.quantity),0);
                                         },0);
-                                        const COLORS = ['text-[#f08080]','text-[#6EA8FE]'];
-                                        const RINGS  = ['ring-[#f08080]/20','ring-[#6EA8FE]/20'];
-                                        const BAR_CLS = ['bg-gradient-to-r from-[#f08080] to-[#e05555]','bg-gradient-to-r from-[#6EA8FE] to-[#4285F4]'];
-                                        const BAR_V   = ['bg-gradient-to-t from-odoo-600 to-odoo-400','bg-gradient-to-t from-slate-600 to-slate-400'];
+                                        // Ordem: Bia, Ana, Pedro, Lidia, Davison
+                                        // Aparelhos vs Meta — cor do nome e da barra horizontal
+                                        const COLORS  = ['text-[#f08080]','text-[#f76285]','text-[#4ade80]','text-[#c084fc]','text-slate-300'];
+                                        const RINGS   = ['ring-[#f08080]/20','ring-[#f76285]/20','ring-green-400/20','ring-purple-400/20','ring-slate-400/20'];
+                                        const BAR_CLS = [
+                                            'bg-gradient-to-r from-[#f08080] to-[#e05555]',   // Bia — coral
+                                            'bg-gradient-to-r from-[#f76285] to-[#e04060]',   // Ana — rosa
+                                            'bg-gradient-to-r from-green-400 to-green-600',   // Pedro — verde
+                                            'bg-gradient-to-r from-purple-400 to-purple-600', // Lidia — roxo
+                                            'bg-gradient-to-r from-slate-600 to-slate-900',   // Davison — preto
+                                        ];
+                                        // Faturamento por Vendedora — cor do nome e da barra vertical
+                                        const COLORS_V = ['text-[#f08080]','text-[#f76285]','text-[#facc15]','text-[#d8b4fe]','text-[#4ade80]'];
+                                        const BAR_V   = [
+                                            'bg-gradient-to-t from-[#e05555] to-[#f08080]',   // Bia — coral
+                                            'bg-gradient-to-t from-[#e04060] to-[#f76285]',   // Ana — rosa
+                                            'bg-gradient-to-t from-yellow-500 to-yellow-300', // Pedro — amarelo
+                                            'bg-gradient-to-t from-purple-600 to-violet-300', // Lidia — lilás
+                                            'bg-gradient-to-t from-green-600 to-green-400',   // Davison — verde
+                                        ];
                                         const data = SELLERS_LIST.map((seller,idx)=>{
                                             const ms = sales.filter(s=>{ const d=new Date((s.date||'')+'T00:00:00'); return s.employeeName===seller&&d.getMonth()===cm&&d.getFullYear()===cy; });
                                             const units = countU(ms);
@@ -2149,7 +2176,7 @@
                                             const prog  = Math.min((units/GOAL_SELLERS)*100,100);
                                             const goalOk= units>=GOAL_SELLERS;
                                             const comm  = goalOk ? units*COMMISSION_PER_UNIT : 0;
-                                            return { seller, units, rev, cnt, avgT, prog, goalOk, comm, color:COLORS[idx], ring:RINGS[idx], bar:BAR_CLS[idx], barV:BAR_V[idx] };
+                                            return { seller, units, rev, cnt, avgT, prog, goalOk, comm, color:COLORS[idx], colorV:COLORS_V[idx], ring:RINGS[idx], bar:BAR_CLS[idx], barV:BAR_V[idx] };
                                         });
                                         const sorted = [...data].sort((a,b)=>b.units-a.units);
                                         const maxRev = Math.max(...data.map(d=>d.rev),1);
@@ -2243,7 +2270,7 @@
                                                                         R$ {formatCurrency(d.rev)}
                                                                     </div>
                                                                     <div className={`w-full rounded-t-2xl ${d.barV} shadow-lg transition-all duration-1000`} style={{height:`${h}%`}}></div>
-                                                                    <p className={`font-bold text-sm mt-4 ${d.color}`}>{d.seller.split(' ')[0]}</p>
+                                                                    <p className={`font-bold text-sm mt-4 ${d.colorV}`}>{d.seller.split(' ')[0]}</p>
                                                                     <p className="text-[10px] text-slate-500 font-mono">R$ {formatCurrency(d.rev)}</p>
                                                                 </div>
                                                             );
@@ -2475,6 +2502,171 @@
                                     </div>
                                 </div>
                             </div>
+                        ) : currentView === 'referrals' ? (
+                            <div className="classic-frame rounded-[3rem] shadow-vision border border-white/10 overflow-hidden fade-in-up backdrop-blur-md">
+                                <div className="p-10 border-b border-white/10 flex justify-between items-center gap-6 bg-white/5 backdrop-blur-md">
+                                    <h2 className="text-2xl font-bold text-slate-200 flex items-center gap-4 font-display">
+                                        <div className="p-3 bg-white/10 rounded-2xl shadow-sm text-odoo-500 border border-white/5"><Icons.Share2 className="w-6 h-6" /></div>
+                                        Análise de Indicações
+                                    </h2>
+                                </div>
+                                {(() => {
+                                    // Normaliza o texto: minúsculas, sem acentos, sem caracteres especiais
+                                    const stripAccents = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                                    const normalizeText = (str) => stripAccents(str.toLowerCase()).replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+
+                                    // Mapeamento de palavras-chave → nome canônico
+                                    // Cada entrada: { keywords: [...], canonical: 'Nome Exibido' }
+                                    const KEYWORD_MAP = [
+                                        { keywords: ['instagram', 'insta', 'istagram', 'instagran', 'instagrama', 'intagram', 'instagran'], canonical: 'Instagram' },
+                                        { keywords: ['facebook', 'fecebook', 'facebok', 'facbook', 'face book', 'fb', 'face'], canonical: 'Facebook' },
+                                        { keywords: ['whatsapp', 'wpp', 'whats app', 'zap'], canonical: 'WhatsApp' },
+                                        { keywords: ['tiktok', 'tik tok', 'tik-tok'], canonical: 'TikTok' },
+                                        { keywords: ['youtube', 'you tube'], canonical: 'YouTube' },
+                                        { keywords: ['google'], canonical: 'Google' },
+                                        { keywords: ['rua', 'passante', 'passou na rua', 'passou pela rua'], canonical: 'Cliente da Rua' },
+                                        { keywords: ['loja', 'cliente loja', 'cliente de loja', 'cliente da loja'], canonical: 'Cliente da Loja' },
+                                        { keywords: ['antigo', 'antiga', 'ja e cliente', 'ja cliente', 'ja era', 'recorrente', 'fidelizado', 'fiel'], canonical: 'Cliente Antigo' },
+                                        { keywords: ['indicacao', 'indicacao de'], canonical: 'Indicação' },
+                                        { keywords: ['amigo', 'amiga'], canonical: 'Indicação de Amigo' },
+                                        { keywords: ['familiar', 'familia', 'parente'], canonical: 'Indicação Familiar' },
+                                        { keywords: ['pri almeida', 'pri'], canonical: 'Pri Almeida' },
+                                    ];
+
+                                    const normalizeSource = (raw) => {
+                                        if (!raw) return '';
+                                        const norm = normalizeText(raw);
+                                        for (const { keywords, canonical } of KEYWORD_MAP) {
+                                            if (keywords.some(kw => norm.includes(kw))) return canonical;
+                                        }
+                                        // Sem match: retorna com capitalização de título
+                                        return raw.trim().toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+                                    };
+
+                                    const salesWithSource = sales.filter(s => s.clientSource && s.clientSource.trim());
+                                    const totalSales = sales.length;
+                                    const totalWithSource = salesWithSource.length;
+                                    const pct = totalSales > 0 ? Math.round((totalWithSource / totalSales) * 100) : 0;
+                                    const sourceMap = {};
+                                    salesWithSource.forEach(s => {
+                                        const src = normalizeSource(s.clientSource);
+                                        if (!sourceMap[src]) sourceMap[src] = { count: 0, total: 0, sales: [] };
+                                        sourceMap[src].count++;
+                                        sourceMap[src].total += (s.amountPaid || s.amount || 0);
+                                        sourceMap[src].sales.push(s);
+                                    });
+                                    const sourcesArr = Object.entries(sourceMap).sort((a, b) => b[1].count - a[1].count);
+                                    const maxCount = sourcesArr.length > 0 ? sourcesArr[0][1].count : 1;
+                                    const topSource = sourcesArr.length > 0 ? sourcesArr[0][0] : '—';
+                                    const totalRevenue = salesWithSource.reduce((acc, s) => acc + (s.amountPaid || s.amount || 0), 0);
+                                    const CANAL_COLORS = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6','#f97316','#6366f1','#84cc16'];
+                                    return (
+                                        <div className="p-10 space-y-10">
+                                            {/* KPIs */}
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                                <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6 text-center">
+                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Vendas c/ Indicação</p>
+                                                    <p className="text-4xl font-black text-odoo-400">{totalWithSource}</p>
+                                                    <p className="text-xs text-slate-600 mt-1">de {totalSales} vendas</p>
+                                                </div>
+                                                <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6 text-center">
+                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Taxa de Indicação</p>
+                                                    <p className="text-4xl font-black text-emerald-400">{pct}%</p>
+                                                    <p className="text-xs text-slate-600 mt-1">das vendas têm origem</p>
+                                                </div>
+                                                <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6 text-center">
+                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Principal Canal</p>
+                                                    <p className="text-xl font-black text-yellow-400 truncate">{topSource}</p>
+                                                    <p className="text-xs text-slate-600 mt-1">{sourcesArr.length > 0 ? sourcesArr[0][1].count + ' indicações' : '—'}</p>
+                                                </div>
+                                                <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6 text-center">
+                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Receita via Indicação</p>
+                                                    <p className="text-2xl font-black text-slate-200">R$ {formatCurrency(totalRevenue)}</p>
+                                                    <p className="text-xs text-slate-600 mt-1">{sourcesArr.length} canais distintos</p>
+                                                </div>
+                                            </div>
+
+                                            {/* Gráfico de barras por canal */}
+                                            {sourcesArr.length > 0 ? (
+                                                <div className="bg-white/5 border border-white/10 rounded-[2rem] p-8">
+                                                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-8">Distribuição por Canal</h3>
+                                                    <div className="space-y-5">
+                                                        {sourcesArr.map(([src, data], idx) => (
+                                                            <div key={src}>
+                                                                <div className="flex justify-between items-center mb-2">
+                                                                    <span className="text-sm font-bold text-slate-300">{src}</span>
+                                                                    <div className="flex items-center gap-4">
+                                                                        <span className="text-xs font-bold text-slate-500">{data.count} vendas</span>
+                                                                        <span className="text-sm font-mono font-bold text-slate-300">R$ {formatCurrency(data.total)}</span>
+                                                                        <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-slate-400">{maxCount > 0 ? Math.round((data.count / maxCount) * 100) : 0}%</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="h-3 bg-white/5 rounded-full overflow-hidden">
+                                                                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${maxCount > 0 ? (data.count / maxCount) * 100 : 0}%`, background: CANAL_COLORS[idx % CANAL_COLORS.length] }}></div>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ) : null}
+
+                                            {/* Tabela detalhada */}
+                                            <div className="bg-white/5 border border-white/10 rounded-[2rem] overflow-hidden">
+                                                <div className="p-6 border-b border-white/10 flex justify-between items-center">
+                                                    <h3 className="font-bold text-slate-400 text-xs uppercase tracking-widest">Detalhamento por Venda</h3>
+                                                    <span className="text-xs font-bold text-slate-600 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">{totalWithSource} registros</span>
+                                                </div>
+                                                {salesWithSource.length === 0 ? (
+                                                    <div className="p-16 text-center text-slate-600">
+                                                        <Icons.Share2 className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                                                        <p className="font-bold">Nenhuma venda com indicação registrada</p>
+                                                        <p className="text-sm mt-1">Preencha o campo "Conheceu a loja?" ao lançar vendas.</p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="overflow-x-auto">
+                                                        <table className="w-full text-sm">
+                                                            <thead className="bg-white/5 text-slate-500 text-xs uppercase tracking-wider border-b border-white/10">
+                                                                <tr>
+                                                                    <th className="p-4 text-left font-bold">Data</th>
+                                                                    <th className="p-4 text-left font-bold">Cliente</th>
+                                                                    <th className="p-4 text-left font-bold">Canal / Indicação</th>
+                                                                    <th className="p-4 text-left font-bold">Vendedor</th>
+                                                                    <th className="p-4 text-left font-bold">Itens</th>
+                                                                    <th className="p-4 text-right font-bold">Valor Pago</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-white/5">
+                                                                {salesWithSource.sort((a, b) => (b.date || '').localeCompare(a.date || '')).map(s => (
+                                                                    <tr key={s.id} className="hover:bg-white/5 transition-colors">
+                                                                        <td className="p-4 text-slate-400 font-mono text-xs whitespace-nowrap">{formatDateBR(s.date)}</td>
+                                                                        <td className="p-4">
+                                                                            <div className="font-bold text-slate-200 leading-tight">{s.clientName}</div>
+                                                                            <div className="text-xs text-slate-500 font-mono mt-0.5">{s.clientCpf}</div>
+                                                                        </td>
+                                                                        <td className="p-4">
+                                                                            <span className="px-3 py-1.5 rounded-xl text-xs font-bold border" style={{ background: 'rgba(59,130,246,0.1)', borderColor: 'rgba(59,130,246,0.25)', color: '#60a5fa' }}>{normalizeSource(s.clientSource)}</span>
+                                                                            {normalizeSource(s.clientSource) !== s.clientSource.trim() && (
+                                                                                <div className="text-[10px] text-slate-600 mt-1 italic">original: {s.clientSource}</div>
+                                                                            )}
+                                                                        </td>
+                                                                        <td className="p-4 text-slate-400 text-xs font-bold">{s.employeeName}</td>
+                                                                        <td className="p-4">
+                                                                            <div className="space-y-0.5">{(s.items || []).map((it, i) => (
+                                                                                <div key={i} className="text-xs text-slate-500">{it.quantity}x {it.type} - {it.description}</div>
+                                                                            ))}</div>
+                                                                        </td>
+                                                                        <td className="p-4 text-right font-mono font-bold text-slate-200 whitespace-nowrap">R$ {formatCurrency(s.amountPaid || s.amount)}</td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+                            </div>
                         ) : currentView === 'clients' ? (
                             <div className="classic-frame rounded-[3rem] shadow-vision border border-white/10 overflow-hidden fade-in-up backdrop-blur-md">
                                 <div className="p-10 border-b border-white/10 flex justify-between items-center gap-6 bg-white/5 backdrop-blur-md"><h2 className="text-2xl font-bold text-slate-200 flex items-center gap-4 font-display"><div className="p-3 bg-white/10 rounded-2xl shadow-sm text-odoo-500 border border-white/5"><Icons.User className="w-6 h-6" /></div>Carteira de Clientes</h2><div className="relative group"><Icons.Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-hover:text-odoo-500 transition-colors" /><input type="text" placeholder="Buscar cliente..." value={clientSearchTerm} onChange={e => setClientSearchTerm(e.target.value)} className="w-80 pl-14 pr-5 py-4 border border-white/10 rounded-[1.5rem] text-sm outline-none font-medium text-slate-300 placeholder-slate-600" /></div></div>
@@ -2699,6 +2891,7 @@
                                                                                             </div>
                                                                                         </div>
                                                                                         <div className="text-right flex-shrink-0">
+                                                                                            {i.discount > 0 && <div className="text-slate-400 line-through" style={{ fontSize: '11px' }}>{formatCurrency(i.unitPrice * i.quantity)}</div>}
                                                                                             <div className="font-bold text-[#0f0f0f]" style={{ fontSize: '14px' }}>{formatCurrency((i.unitPrice * i.quantity) - i.discount)}</div>
                                                                                             {i.discount > 0 && <div className="text-red-600 font-bold" style={{ fontSize: '11px' }}>-{formatCurrency(i.discount)}</div>}
                                                                                             {(s.category === 'Troca' || s.category === 'Devolução') && <div className="font-black uppercase" style={{ fontSize: '10px', color: i.unitPrice > 0 ? '#2e7d32' : '#c0392b' }}>{i.unitPrice > 0 ? 'Levou' : 'Devolveu'}</div>}
@@ -2824,7 +3017,11 @@
                                                             {currentReceipt.category === 'Troca' && <p style={{ fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', color: it.unitPrice > 0 ? '#2e7d32' : '#c0392b', marginTop: '2px' }}>{it.unitPrice > 0 ? '↑ Levou' : '↓ Devolveu'}</p>}
                                                         </div>
                                                         <span style={{ fontSize: '12px', fontWeight: 700, color: '#0f0f0f', textAlign: 'center', alignSelf: 'start', paddingTop: '2px' }}>{it.quantity}</span>
-                                                        <span style={{ fontSize: '13px', fontWeight: 800, color: it.unitPrice < 0 ? '#c0392b' : '#0f0f0f', textAlign: 'right', alignSelf: 'start', paddingTop: '2px' }}>{formatCurrency((it.unitPrice * it.quantity) - it.discount)}</span>
+                                                        <div style={{ textAlign: 'right', alignSelf: 'start', paddingTop: '2px' }}>
+                                                            {it.discount > 0 && <div style={{ fontSize: '10px', fontWeight: 600, color: '#9b8b7a', textDecoration: 'line-through' }}>{formatCurrency(it.unitPrice * it.quantity)}</div>}
+                                                            <span style={{ fontSize: '13px', fontWeight: 800, color: it.unitPrice < 0 ? '#c0392b' : '#0f0f0f' }}>{formatCurrency((it.unitPrice * it.quantity) - it.discount)}</span>
+                                                            {it.discount > 0 && <div style={{ fontSize: '10px', fontWeight: 700, color: '#c0392b' }}>-{formatCurrency(it.discount)}</div>}
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>
